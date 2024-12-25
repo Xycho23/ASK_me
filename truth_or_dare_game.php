@@ -7,11 +7,27 @@ if (!isset($_SESSION['players']) || empty($_SESSION['players'])) {
     exit;
 }
 
-// Initialize game variables
-$players = $_SESSION['players'];
-$totalPlayers = count($players);
-$currentPlayerIndex = isset($_SESSION['currentPlayerIndex']) ? $_SESSION['currentPlayerIndex'] : 0;
-$currentPlayer = $players[$currentPlayerIndex];
+// Total number of players
+$totalPlayers = 10; // Assuming you have 10 players (player1.jpg to player10.jpg)
+
+// Check if the session has a current player index, if not, initialize it
+if (!isset($_SESSION['currentPlayerIndex'])) {
+    $_SESSION['currentPlayerIndex'] = 0;  // Start with player 1 (index 0)
+}
+
+// Check if the form has been submitted for the "Next Player" button
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nextPlayer'])) {
+    // Move to the next player after their turn
+    $_SESSION['currentPlayerIndex'] = ($_SESSION['currentPlayerIndex'] + 1) % $totalPlayers;
+}
+
+// Get the current player index from session
+$currentPlayerIndex = $_SESSION['currentPlayerIndex'];
+
+// Calculate the current player's number (1-based, i.e., player 1, player 2, etc.)
+$currentPlayerName = "Player " . ($currentPlayerIndex + 1);
+$avatarPath = "avatars/player" . ($currentPlayerIndex + 1) . ".jpg";  // Adjust path to avatars
+
 
 $truths = [
     "What is your biggest fear?",
@@ -197,12 +213,15 @@ $dareTasks = [
 ];
 
 
-// Game logic to determine the next player after the current one
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+// Check if the form has been submitted for the "Next Player" button
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nextPlayer'])) {
     // Move to the next player after their turn
-    $currentPlayerIndex = ($currentPlayerIndex + 1) % $totalPlayers;
-    $_SESSION['currentPlayerIndex'] = $currentPlayerIndex;
+    $_SESSION['currentPlayerIndex'] = ($_SESSION['currentPlayerIndex'] + 1) % $totalPlayers;
 }
+
+// Get the current player index from session
+$currentPlayerIndex = $_SESSION['currentPlayerIndex'];
 
 // Handle the Truth/Dare selection and show appropriate question/task
 $selectedOption = isset($_POST['choice']) ? $_POST['choice'] : '';
@@ -220,12 +239,13 @@ if ($selectedOption === 'truth') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>Truth or Dare Game</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -255,6 +275,13 @@ if ($selectedOption === 'truth') {
             font-size: 20px;
             margin-bottom: 20px;
             color: #3498db;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
 
         .game-option {
@@ -346,13 +373,35 @@ if ($selectedOption === 'truth') {
         .back-button:hover {
             background-color: #c0392b;
         }
+        /* Timer Styles */
+        .timer {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #e74c3c;
+        }
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="game-container">
+<img src="ask-me.png" alt="Game Logo" class="logo">
     <h1>Truth or Dare</h1>
-    <p class="player-name">It's <?= $currentPlayer ?>'s turn!</p>
+    
+
+    <!-- Display current player's avatar and name -->
+    <div class="player-info">
+        <img src="<?= $avatarPath ?>" alt="Avatar" class="avatar">
+        <p class="player-name">It's <?= $currentPlayerName ?>'s turn!</p>
+    </div>
+
+    <!-- Timer display -->
+    <div class="timer" id="timer">
+        1:00
+    </div>
 
     <!-- Display the Truth or Dare Flip Card -->
     <?php if ($selectedOption): ?>
@@ -374,12 +423,39 @@ if ($selectedOption === 'truth') {
         </form>
     <?php endif; ?>
 
-    <!-- Proceed to the next player -->
-    <button class="next-button" onclick="window.location.href='truth_or_dare_game.php'">Next Player</button>
+    <!-- Next Player Button (Form Submission) -->
+    <form method="POST" action="truth_or_dare_game.php">
+        <button type="submit" class="next-button" name="nextPlayer">Next Player</button>
+    </form>
 
     <!-- Back to Game Selection -->
     <button class="back-button" onclick="window.location.href='select_game.php'">Back to Game Selection</button>
 </div>
+
+<!-- JavaScript for Timer Countdown -->
+<script>
+    // Timer logic (1 minute countdown)
+    let timeLeft = 300; // 1 minute in seconds
+    const timerElement = document.getElementById('timer');
+
+    function updateTimer() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            // Timer finished - Trigger action (e.g., next player)
+            alert("Time's up! Proceeding to the next player.");
+            window.location.href = 'truth_or_dare_game.php'; // Change this to your next player logic
+        } else {
+            timeLeft--;
+        }
+    }
+
+    // Start the timer
+    const timerInterval = setInterval(updateTimer, 1000);
+</script>
 
 </body>
 </html>

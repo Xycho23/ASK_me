@@ -12,7 +12,7 @@ $players = $_SESSION['players'];
 $totalPlayers = count($players);
 $currentPlayerIndex = isset($_SESSION['currentPlayerIndex']) ? $_SESSION['currentPlayerIndex'] : 0;
 $currentPlayer = $players[$currentPlayerIndex];
-
+$avatarPath = "avatars/player" . ($currentPlayerIndex + 1) . ".jpg";  // Adjust path to avatars
 // Never Have I Ever statements
 $neverHaveIEverStatements = [
     "Never have I ever traveled to another country.",
@@ -315,12 +315,13 @@ $neverHaveIEverStatement = $neverHaveIEverStatements[array_rand($neverHaveIEverS
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>Never Have I Ever Game</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -335,6 +336,7 @@ $neverHaveIEverStatement = $neverHaveIEverStatements[array_rand($neverHaveIEverS
             background: #fff;
             padding: 20px;
             border-radius: 12px;
+            border: 3px solidrgb(255, 255, 255); /* Added border */
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             max-width: 500px;
             width: 100%;
@@ -410,12 +412,33 @@ $neverHaveIEverStatement = $neverHaveIEverStatements[array_rand($neverHaveIEverS
             font-size: 18px;
             color: #3498db;
         }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        #timer-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="game-container">
+    <img src="ask-me.png" alt="Game Logo" class="logo">
     <h1>Never Have I Ever Game</h1>
+    <img src="<?= $avatarPath ?>" alt="Avatar" class="avatar">
     <p class="player-name">It's <?= $currentPlayer ?>'s turn!</p>
     <p><strong>Statement:</strong> <?= $neverHaveIEverStatement ?></p>
 
@@ -430,42 +453,28 @@ $neverHaveIEverStatement = $neverHaveIEverStatements[array_rand($neverHaveIEverS
     <?php endif; ?>
 
     <!-- Timer -->
-    <div id="timer" class="timer">Time Remaining: <span id="time-left">30</span> seconds</div>
+    <div id="timer-display">5:30 minutes</div>
+    <script src="timer.js"></script>
 
     <script>
-        let timeLeft = 30; // Timer duration (30 seconds)
-        const timerElement = document.getElementById('time-left');
-        const followUpQuestionElement = document.getElementById('follow-up-question');
+        let timeLeft = 630; // Timer duration (630 seconds)
+        const timerElement = document.getElementById('timer-display');
         
         // Start Timer
         function startTimer() {
             const interval = setInterval(() => {
                 if (timeLeft > 0) {
                     timeLeft--;
-                    timerElement.textContent = timeLeft;
+                    timerElement.textContent = `${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, '0')} minutes`;
                 } else {
                     clearInterval(interval);
                     alert('Time is up! Proceeding to the next player.');
-                    window.location.reload(); // Reload to go to the next player
+                    window.location.reload();
                 }
             }, 1000);
         }
 
-        // Show follow-up question when the player clicks "I Have"
-        if (document.querySelector('form').elements['response'].value === 'I Have') {
-            followUpQuestionElement.style.display = 'block';
-        }
-
-        // Function to hide the follow-up question when the next player is selected
-        function hideFollowUpQuestion() {
-            followUpQuestionElement.style.display = 'none';
-            window.location.reload(); // Move to next player
-        }
-
         startTimer(); // Start the timer as soon as the page loads
-
-        // When "Next Player" button is clicked, hide follow-up question and reset
-        document.querySelector('.next-button').addEventListener('click', hideFollowUpQuestion);
     </script>
 
     <!-- Next Player Button -->

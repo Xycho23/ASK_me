@@ -19,6 +19,21 @@ if (!isset($_SESSION['currentTurn'])) {
 $currentTurn = $_SESSION['currentTurn'];
 $playerName = $players[$currentTurn];
 
+// Assign avatars for players
+$avatars = [
+    "avatars/player1.jpg",
+    "avatars/player2.jpg",
+    "avatars/player3.jpg",
+    "avatars/player4.jpg",
+    "avatars/player5.jpg",
+    "avatars/player6.jpg",
+    "avatars/player7.jpg",
+    "avatars/player8.jpg",
+    "avatars/player9.jpg",
+    "avatars/player10.jpg"
+];
+$playerAvatar = $avatars[$currentTurn % count($avatars)];
+
 // Random questions for losers
 $followUpQuestions = [
     "What’s the most embarrassing thing you’ve ever done?",
@@ -302,12 +317,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>The Question Game</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -325,8 +341,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             max-width: 600px;
             width: 100%;
         }
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
         h1 {
-            font-size: 24px;
+            font-size: 28px;
             margin-bottom: 20px;
             color: #333;
         }
@@ -338,8 +358,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .player-name {
             font-size: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: #3498db;
+        }
+        .player-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .timer {
             font-size: 18px;
@@ -385,7 +412,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
     <script>
         let timer;
-        let countdown = 10; // 10 seconds for each turn
+        let countdown = 60; // 60 seconds for each turn
 
         function startTimer() {
             const timerDisplay = document.getElementById("timer");
@@ -402,7 +429,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function resetTimer() {
             clearInterval(timer);
-            countdown = 10;
+            countdown = 60;
             document.getElementById("timer").textContent = countdown;
             document.getElementById("time-up").style.display = "none";
         }
@@ -413,25 +440,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <div class="game-container">
+    <img src="ask-me.png" alt="Game Logo" class="logo">
     <h1>The Question Game</h1>
 
     <!-- Instructions -->
     <div class="instructions">
-        <p><strong>Instructions:</strong></p>
+        <p><strong>How to Play:</strong></p>
         <ul>
-            <li>Each player takes turns asking another player a question.</li>
-            <li>If a player fails to respond within the time limit or repeats a question, they lose their turn.</li>
-            <li>The loser will be assigned a random follow-up question to answer.</li>
-            <li>The game continues with the next player until everyone has had a turn.</li>
+            <li>Each player gets a turn to ask a question.</li>
+            <li>If a player fails to respond in time or repeats a question, they lose.</li>
+            <li>The loser answers a fun follow-up question.</li>
         </ul>
     </div>
 
-    <!-- Current Player's Turn -->
+    <!-- Current Player -->
     <p class="player-name"><?= $playerName ?>'s Turn</p>
+    <img src="<?= $playerAvatar ?>" alt="Player Avatar" class="player-avatar">
 
     <!-- Timer -->
     <div class="timer">
-        <p>Time Remaining: <span id="timer">10</span> seconds</p>
+        <p>Time Remaining: <span id="timer">60</span> seconds</p>
         <p id="time-up" style="display:none; color:red;">Time's up! Declare a loser!</p>
     </div>
 
@@ -443,7 +471,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
     </div>
 
-    <!-- Show question for the loser -->
+    <!-- Loser Section -->
     <?php if ($_SESSION['loser']): ?>
         <div class="loser-section">
             <p><?= $_SESSION['loser'] ?>, here’s a question for you:</p>
@@ -451,7 +479,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <!-- Back to Game Selection -->
+    <!-- Back Button -->
     <button class="back-button" onclick="window.location.href='select_game.php'">Back to Game Selection</button>
 </div>
 

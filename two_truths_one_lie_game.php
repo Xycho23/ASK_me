@@ -13,32 +13,54 @@ $totalPlayers = count($players);
 
 // Initialize the current turn and chosen players
 $currentTurn = isset($_SESSION['currentTurn']) ? $_SESSION['currentTurn'] : 0;
-$chosenPlayer = isset($_SESSION['chosenPlayer']) ? $_SESSION['chosenPlayer'] : null;
+$chosenPlayer = isset($_SESSION['chosenPlayer']) ? $_SESSION['chosenPlayer'] : $players[$currentTurn];
 $confirmPlayer = isset($_SESSION['confirmPlayer']) ? $_SESSION['confirmPlayer'] : null;
-$timerRunning = isset($_SESSION['timerRunning']) ? $_SESSION['timerRunning'] : false;
+$followUpQuestion = isset($_SESSION['followUpQuestion']) ? $_SESSION['followUpQuestion'] : false;
 
 // Function to select a random player who will confirm the truth/lie
-function getRandomConfirmPlayer($chosenPlayer) {
-    global $players;
+function getRandomConfirmPlayer($chosenPlayer, $players) {
     $remainingPlayers = array_diff($players, [$chosenPlayer]);
     return $remainingPlayers[array_rand($remainingPlayers)];
 }
 
-// Choose the current player to share two truths and one lie
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nextTurn'])) {
-    // Move to the next turn (pick new players)
-    $currentTurn = ($currentTurn + 1) % $totalPlayers;
-    $chosenPlayer = $players[$currentTurn];
-    $confirmPlayer = getRandomConfirmPlayer($chosenPlayer);
+// Handle form submission for next turn or confirmation
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['nextTurn'])) {
+        // Reset follow-up question flag
+        $followUpQuestion = false;
 
-    $_SESSION['currentTurn'] = $currentTurn;
-    $_SESSION['chosenPlayer'] = $chosenPlayer;
-    $_SESSION['confirmPlayer'] = $confirmPlayer;
+        // Move to the next turn (pick new players)
+        $currentTurn = ($currentTurn + 1) % $totalPlayers;
+        $chosenPlayer = $players[$currentTurn];
+        $confirmPlayer = getRandomConfirmPlayer($chosenPlayer, $players);
 
-    // Reset the timer for the next player
-    $_SESSION['timerRunning'] = true;
+        $_SESSION['currentTurn'] = $currentTurn;
+        $_SESSION['chosenPlayer'] = $chosenPlayer;
+        $_SESSION['confirmPlayer'] = $confirmPlayer;
+        $_SESSION['followUpQuestion'] = $followUpQuestion;
+
+    } elseif (isset($_POST['confirmGuess'])) {
+        // Check if the guess was correct
+        if ($_POST['guessResult'] === 'correct') {
+            // Move to the next turn
+            $currentTurn = ($currentTurn + 1) % $totalPlayers;
+            $chosenPlayer = $players[$currentTurn];
+            $confirmPlayer = getRandomConfirmPlayer($chosenPlayer, $players);
+
+            $_SESSION['currentTurn'] = $currentTurn;
+            $_SESSION['chosenPlayer'] = $chosenPlayer;
+            $_SESSION['confirmPlayer'] = $confirmPlayer;
+            $followUpQuestion = false; // Reset follow-up question flag
+        } else {
+            // Set the follow-up question flag
+            $followUpQuestion = true;
+            $_SESSION['followUpQuestion'] = $followUpQuestion;
+        }
+    }
 }
 
+$currentPlayerName = $chosenPlayer; // For displaying the current player's name
+$avatarPath = "avatars/player" . ($currentTurn + 1) . ".jpg"; // Adjust path to avatars
 ?>
 
 <!DOCTYPE html>
@@ -46,12 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nextTurn'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>Two Truths and One Lie</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
-        body {
+ body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -60,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nextTurn'])) {
             justify-content: center;
             min-height: 100vh;
             text-align: center;
+        }
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
         }
         .game-container {
             background: #fff;
@@ -95,15 +124,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nextTurn'])) {
             font-weight: bold;
             margin-top: 20px;
         }
-        .action-button {
-            background-color: #3498db;
-            color: white;
+        .action-button, .back-button {
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             margin-top: 20px;
+        }
+        .action-button {
+            background-color: #3498db;
+            color: white;
         }
         .action-button:hover {
             background-color: #2980b9;
@@ -111,66 +142,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nextTurn'])) {
         .back-button {
             background-color: #e74c3c;
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
         }
         .back-button:hover {
             background-color: #c0392b;
         }
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
+        /* Same styles as before */
     </style>
 </head>
 <body>
 
 <div class="game-container">
+<img src="ask-me.png" alt="Game Logo" class="logo">
     <h1>Two Truths and One Lie</h1>
 
     <!-- Instructions for the game -->
     <div class="instructions">
         <p><strong>Instructions:</strong></p>
-        <p>1. Each player takes turns sharing three statements about themselves. Two statements should be true, and one should be a lie.</p>
+        <p>1. Each player takes turns sharing three statements about themselves to the group. Two statements should be true, and one should be a lie.</p>
         <p>2. The other players must try to guess which statement is the lie.</p>
-        <p>3. After the player shares their statements, the designated guesser will confirm whether the guess is correct.</p>
-        <p>4. If the guesser guesses correctly, the player will reveal which statement was the lie. If the guesser is wrong, they will be asked a question.</p>
-        <p>5. Once confirmed, the game moves to the next player.</p>
+        <p>3. The designated guesser will confirm whether the guess is correct.</p>
     </div>
+    <img src="<?= htmlspecialchars($avatarPath) ?>" alt="Avatar" class="avatar">
+    <p class="player-name">It's <?= htmlspecialchars($currentPlayerName) ?>'s turn!</p>
 
-    <?php if (!$chosenPlayer): ?>
-        <p>Select the player to start.</p>
+    <?php if ($followUpQuestion): ?>
+        <!-- Follow-up question section -->
+        <p class="game-status"><?= htmlspecialchars($confirmPlayer) ?>, your guess was incorrect. Please ask a follow-up question to <?= htmlspecialchars($chosenPlayer) ?>.</p>
+        <form method="POST">
+            <button type="submit" name="nextTurn" class="action-button">Proceed to Next Turn</button>
+        </form>
     <?php else: ?>
-        <p class="player-name">It's <?= $chosenPlayer ?>'s turn!</p>
-        <p class="game-status"><?= $chosenPlayer ?>, please share two truths and one lie to the group.</p>
-        <p class="game-status">Then, <?= $confirmPlayer ?> will confirm which one is the lie.</p>
+        <p class="game-status"><?= htmlspecialchars($chosenPlayer) ?>, please share two truths and one lie.</p>
+        <p class="game-status"><?= htmlspecialchars($confirmPlayer) ?> will confirm which one is the lie.</p>
+
+        <form method="POST">
+            <label>
+                <input type="radio" name="guessResult" value="correct" required>
+                The guess was correct
+            </label><br>
+            <label>
+                <input type="radio" name="guessResult" value="wrong" required>
+                The guess was wrong
+            </label><br>
+            <button type="submit" name="confirmGuess" class="action-button">Confirm Guess</button>
+        </form>
     <?php endif; ?>
-
-    <!-- Timer Section -->
-    <?php if ($chosenPlayer): ?>
-        <div id="timer" class="timer">30</div>
-        <script>
-            let timeLeft = 30;
-            const timerElement = document.getElementById("timer");
-
-            function updateTimer() {
-                if (timeLeft > 0) {
-                    timeLeft--;
-                    timerElement.innerText = timeLeft;
-                } else {
-                    clearInterval(timerInterval);
-                    alert("Time's up! Moving to next player.");
-                    document.querySelector("form").submit();
-                }
-            }
-
-            const timerInterval = setInterval(updateTimer, 1000);
-        </script>
-    <?php endif; ?>
-
-    <form method="POST">
-        <button type="submit" name="nextTurn" class="action-button">Next Turn</button>
-    </form>
 
     <button class="back-button" onclick="window.location.href='select_game.php'">Back to Game Selection</button>
 </div>

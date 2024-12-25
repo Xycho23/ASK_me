@@ -244,8 +244,9 @@ if (empty($_SESSION['remaining_players'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>Spin the Bottle</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         body {
             margin: 0;
@@ -256,24 +257,18 @@ if (empty($_SESSION['remaining_players'])) {
             align-items: center;
             height: 100vh;
             font-family: 'Poppins', sans-serif;
-            background: #f1f1f1;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             text-align: center;
+        }
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
         }
 
         header {
             position: absolute;
             top: 20px;
             left: 20px;
-        }
-
-        .back-btn {
-            background-color: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 16px;
         }
 
         .circle {
@@ -287,19 +282,27 @@ if (empty($_SESSION['remaining_players'])) {
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            background: #ffffff;
         }
 
-        .player-name {
+        .player-container {
             position: absolute;
-            font-size: 14px;
-            font-weight: bold;
-            color: #333;
             text-align: center;
-            transform-origin: center;
-            border: 2px solid #3498db;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            padding: 5px 10px;
-            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #3498db;
         }
 
         .bottle {
@@ -313,19 +316,15 @@ if (empty($_SESSION['remaining_players'])) {
             transform-origin: center 50%;
         }
 
-        button {
-            margin-top: 20px;
-            background-color: #e74c3c;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: #dee2e6;
+            margin: 10px 0;
         }
 
-        button:hover {
-            background-color: #c0392b;
+        button {
+            margin-top: 20px;
         }
 
         .history {
@@ -345,29 +344,107 @@ if (empty($_SESSION['remaining_players'])) {
         .history-item span {
             font-weight: bold;
         }
+        /* Fullscreen overlay */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Overlay content (card) */
+#overlayContent {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+#overlayContent h2 {
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+#overlayContent p {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+#overlayContent button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#overlayContent button:hover {
+    background-color: #218838;
+}
+
     </style>
 </head>
 <body>
 <header>
-    <a href="select_game.php" class="back-btn">Back</a>
+    <a href="select_game.php" class="btn btn-primary">Back</a>
 </header>
 <h1>Spin the Bottle</h1>
+<img src="ask-me.png" alt="Game Logo" class="logo">
 <div class="circle" id="circle">
     <?php foreach ($_SESSION['remaining_players'] as $index => $player): 
-        // Calculate the position of each player dynamically
+        // Generate dynamic positioning
         $angle = ($index * 360) / count($_SESSION['remaining_players']);
         $x = 50 + 40 * cos(deg2rad($angle));
         $y = 50 + 40 * sin(deg2rad($angle));
     ?>
-        <div class="player-name" style="left: <?= $x ?>%; top: <?= $y ?>%; transform: translate(-50%, -50%);">
-            <?= htmlspecialchars($player) ?>
+        <div class="player-container" style="left: <?= $x ?>%; top: <?= $y ?>%; transform: translate(-50%, -50%);">
+            <img src="avatars/player<?= htmlspecialchars($player) ?>.jpg" alt="<?= htmlspecialchars($player) ?> Player" class="player-avatar">
+            <div class="mt-1 small"><?= htmlspecialchars($player) ?></div>
         </div>
     <?php endforeach; ?>
     <div class="bottle" id="bottle"></div>
 </div>
-<button onclick="spinBottle()">Spin the Bottle</button>
+<button class="btn btn-danger" onclick="spinBottle()">Spin the Bottle</button>
 
+<div class="divider"></div>
+<div class="history">
+    <h3>Recent Questions</h3>
+    <div id="history-container">
+        <?php 
+            // Check if session history exists and is not empty
+            if (isset($_SESSION['history']) && !empty($_SESSION['history'])):
+                foreach ($_SESSION['history'] as $historyItem): 
+        ?>
+                    <div class="history-item">
+                        <span><?= htmlspecialchars($historyItem['player']) ?></span>: <?= htmlspecialchars($historyItem['question']) ?>
+                    </div>
+        <?php
+                endforeach;
+            else:
+        ?>
+                <p>No recent questions found.</p>
+        <?php
+            endif;
+        ?>
+    </div>
+</div>
 
+<div id="overlay" style="display: none;">
+    <div id="overlayContent">
+        <!-- Content will be dynamically added here -->
+    </div>
+</div>
 
 <script>
     function spinBottle() {
@@ -375,7 +452,6 @@ if (empty($_SESSION['remaining_players'])) {
         const players = <?= json_encode(array_values($_SESSION['remaining_players'])); ?>;
         const playerCount = players.length;
 
-        // Random rotation: 2 full spins + a random angle
         const randomRotation = Math.floor(Math.random() * 360) + (720 * 2); 
         bottle.style.transition = 'transform 3s ease-out';
         bottle.style.transform = `rotate(${randomRotation}deg)`;
@@ -386,36 +462,50 @@ if (empty($_SESSION['remaining_players'])) {
             const loserName = players[playerIndex];
             const question = "<?= getRandomQuestion(); ?>";
 
-            alert(`${loserName} is the loser! Question: "${question}"`);
+            // Show overlay card and wait for user interaction
+            showOverlayCard(loserName, question);
 
-            // Store the question history
-            if (!window.historyList) window.historyList = [];
-            window.historyList.push({ player: loserName, question: question });
+        }, 3000);
+    }
 
-            // Update the history container
-            const historyContainer = document.getElementById('history-container');
-            const historyItem = document.createElement('div');
-            historyItem.className = 'history-item';
-            historyItem.innerHTML = `<span>${loserName}</span>: ${question}`;
-            historyContainer.prepend(historyItem);
+    // Function to display the overlay with the chosen question
+    function showOverlayCard(loserName, question) {
+        // Get the overlay and content elements
+        const overlay = document.getElementById("overlay");
+        const overlayContent = document.getElementById("overlayContent");
 
-            // Save history to session
+        // Update the content with the question and name
+        overlayContent.innerHTML = `
+            <h2>${loserName} is the chosen!</h2>
+            <p>Question: "${question}"</p>
+            <button id="closeOverlay">Continue</button>
+        `;
+
+        // Show the overlay
+        overlay.style.display = "flex";
+
+        // Add event listener to the close button
+        document.getElementById("closeOverlay").addEventListener("click", function () {
+            overlay.style.display = "none";
+
+            // Update history and eliminate the player after overlay is closed
             fetch('update_history.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ player: loserName, question: question })
             }).then(() => {
-                // Remove the loser from the remaining players
-                fetch('eliminate_player.php', {
+                fetch('spin_the_bottle.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ loser: loserName })
                 }).then(() => {
-                    location.reload(); // Reload the page to update remaining players
+                    location.reload();
                 });
             });
-        }, 3000);
+        });
     }
 </script>
+
+
 </body>
 </html>

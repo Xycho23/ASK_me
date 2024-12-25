@@ -10,12 +10,13 @@ if (!isset($_SESSION['players'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>ASK ME - Select Game</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -154,7 +155,7 @@ if (!isset($_SESSION['players'])) {
     <button class="game-option" onclick="selectGame('kings_cup')">Kings Cup</button>
     <button class="game-option" onclick="selectGame('hot_potato')">Hot Potato</button>
     <button class="game-option" onclick="selectGame('two_truths_one_lie')">Two Truths and a Lie</button>
-    <button class="game-option" onclick="selectGame('liars_dice')">Liar's Dice</button>
+   
     <button class="game-option" onclick="selectGame('rock_paper_scissors')">Rock, Paper, Scissors</button>
     <button class="game-option" onclick="selectGame('the_question_game')">The Question Game</button>
 
@@ -193,7 +194,7 @@ if (!isset($_SESSION['players'])) {
         switch (selectedGame) {
             case 'spin_the_bottle':
                 modalTitle.textContent = 'Spin the Bottle Instructions';
-                modalBody.innerHTML = '<p>The game "Spin the Bottle" is a fun game where players take turns spinning a bottle. When it stops, the player to whom the bottle points must either kiss the person or do a dare.</p>';
+                modalBody.innerHTML = '<p>The game "Spin the Bottle" is a fun game where players take turns spinning a bottle. When it stops, the player to whom the bottle points must either kiss the person or do a dare/ ask some question.</p>';
                 break;
             case 'truth_or_dare':
                 modalTitle.textContent = 'Truth or Dare Instructions';
@@ -220,10 +221,7 @@ if (!isset($_SESSION['players'])) {
                 modalTitle.textContent = 'Two Truths and a Lie Instructions';
                 modalBody.innerHTML = '<p>Each player takes turns saying three statements: two true and one false. The other players have to guess which statement is the lie.</p>';
                 break;
-            case 'liars_dice':
-                modalTitle.textContent = 'Liar\'s Dice Instructions';
-                modalBody.innerHTML = '<p>Each player rolls dice and hides their roll. They then make bids on how many of a certain number are rolled across all players. Other players can challenge the bid if they think it is a lie.</p>';
-                break;
+            
             case 'rock_paper_scissors':
                 modalTitle.textContent = 'Rock, Paper, Scissors Instructions';
                 modalBody.innerHTML = '<p>Each player simultaneously forms a hand gesture representing rock, paper, or scissors. Rock beats scissors, scissors beats paper, and paper beats rock.</p>';
@@ -266,9 +264,8 @@ if (!isset($_SESSION['players'])) {
             case 'two_truths_one_lie':
                 window.location.href = 'two_truths_one_lie_game.php';
                 break;
-            case 'liars_dice':
-                window.location.href = 'liars_dice_game.php';
-                break;
+            
+                
             case 'rock_paper_scissors':
                 window.location.href = 'rock_paper_scissors_game.php';
                 break;

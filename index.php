@@ -15,123 +15,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['players'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASK ME Game</title>
+    <link rel="icon" type="image/png" href="ask-me.png">
+    <title>ASK ME </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: rgb(245, 245, 245);
-            margin: 0;
-            padding: 0;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #333;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            text-align: center;
+            align-items: center;
         }
-
-        header {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .logo {
-            width: 120px;
-            margin-bottom: 15px;
-        }
-
-        .intro {
-            font-size: 18px;
-            color: #555;
-            margin-bottom: 20px;
-        }
-
         .form-container {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.9);
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 90%;
-        }
-
-        h1 {
-            font-size: 26px;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        select, input[type="text"], button {
-            width: 90%;
-            padding: 12px;
-            margin: 10px auto;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-            display: block;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
-
-        select {
-            cursor: pointer;
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #fda085;
         }
-
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .players-list {
-            display: none;
-        }
-
-        .player-name {
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .player-name input {
-            flex-grow: 1;
-            margin-left: 10px;
-        }
-
-        footer {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #aaa;
-            text-align: center;
-        }
-
-        footer a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        footer .contact {
-            margin-top: 10px;
-            font-size: 16px;
-            color: #444;
-        }
-
-        footer .contact a {
-            color: #e74c3c;
-        }
-
-        /* Privacy Policy Overlay */
         .overlay {
             display: none;
             position: fixed;
@@ -146,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['players'])) {
             text-align: center;
             z-index: 1000;
         }
-
         .overlay-content {
             background-color: #333;
             padding: 20px;
@@ -154,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['players'])) {
             width: 80%;
             max-width: 600px;
         }
-
         .close-btn {
             background-color: red;
             padding: 10px;
@@ -164,63 +74,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['players'])) {
             cursor: pointer;
             font-size: 18px;
         }
-
         .close-btn:hover {
             background-color: #c0392b;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 22px;
-            }
-
-            .intro {
-                font-size: 16px;
-            }
-
-            select, input[type="text"], button {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
 <body>
-<header>
-    <img src="ask-me.png" alt="ASK ME Logo" class="logo">
-    <div class="intro">
-        <strong>Welcome to ASK ME!</strong><br>
-        A fun and exciting game that challenges your friends with random questions and tasks. Perfect for any gathering!
-    </div>
+<header class="text-center mb-4">
+    <img src="ask-me.png" alt="ASK ME Logo" class="img-fluid" style="width: 100px;">
+    <h1 class="fw-bold">Welcome to ASK ME!</h1>
+    <p class="lead">A fun and exciting game to challenge your friends!</p>
 </header>
 <div class="form-container">
-    <h1>Enter Player Names</h1>
+    <h2>Select Number of Players</h2>
     <div id="select-players">
-        <label for="player_count">Select Number of Players:</label>
-        <select id="player_count">
+        <label for="player_count" class="form-label">Number of Players:</label>
+        <select id="player_count" class="form-select">
             <option value="0" selected>Select</option>
             <?php for ($i = 2; $i <= 10; $i++): ?>
                 <option value="<?= $i ?>"><?= $i ?> Players</option>
             <?php endfor; ?>
         </select>
-        <button id="start-selection" onclick="generatePlayerFields()">Next</button>
+        <button class="btn btn-primary mt-3" onclick="generatePlayerFields()">Next</button>
     </div>
-    <form method="POST" id="players-form" class="players-list">
-        <div id="players-container"></div>
-        <button type="submit">Start Game</button>
+    <form method="POST" class="row g-3 mt-4" id="players-form" style="display: none;">
+        <div id="players-container" class="row"></div>
+        <div class="col-12 text-center">
+            <button type="button" class="btn btn-secondary me-2" onclick="goBack()">Back</button>
+            <button type="submit" class="btn btn-success">Start Game</button>
+        </div>
     </form>
 </div>
-<footer>
+<footer class="text-center mt-4">
     <p>&copy; <?= date('Y') ?> ASK ME Game. Created with ❤️.</p>
-    <p class="contact">For recommendations, contact us at <a href="mailto:askme.game@support.com">lurcabea22@gmail.com
-    <p><a href="#" onclick="showPrivacyPolicy()">Privacy Policy</a></p>
+    <p>Contact us: <a href="mailto:lurcabea22@gmail.com" class="text-decoration-none text-primary">lurcabea22@gmail.com</a></p>
+    <button class="btn btn-info mt-2 me-2" onclick="showInfo()">Info</button>
+    <button class="btn btn-warning mt-2" onclick="showPrivacyPolicy()">Privacy Policy</button>
 </footer>
 
-<!-- Privacy Policy Overlay -->
+<!-- Info Overlay -->
+<div class="overlay" id="info-overlay">
+    <div class="overlay-content">
+        <h2>About ASK ME</h2>
+        <p>ASK ME is an interactive game designed to bring friends closer together by challenging them with random tasks and questions. It's perfect for parties, family gatherings, and other events!</p>
+        <button class="close-btn" onclick="closeInfo()">Close</button>
+    </div>
+</div>
+
+<div class="overlay" id="info-overlay">
+    <div class="overlay-content">
+        <h2>About ASK ME</h2>
+        <p>ASK ME is a fun, interactive game designed to challenge your friends with random questions and tasks. It’s the perfect addition to any gathering, sparking laughter and friendly competition!</p>
+        <button class="close-btn" onclick="closeInfo()">Close</button>
+    </div>
+</div>
+
 <div class="overlay" id="privacy-policy-overlay">
     <div class="overlay-content">
         <h2>Privacy Policy</h2>
-        <p>Our website runs on sessions to track user interactions and ensure that the game experience is fluid and personalized. Player information such as names is stored temporarily during gameplay. We do not store sensitive personal data, and all information is erased once the session ends.</p>
+        <p>Our website temporarily stores player names during gameplay for a personalized experience. No sensitive data is stored, and all data is erased after the session ends.</p>
         <button class="close-btn" onclick="closePrivacyPolicy()">Close</button>
     </div>
 </div>
@@ -233,23 +145,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['players'])) {
         const selectPlayers = document.getElementById('select-players');
 
         if (playerCount > 0) {
-            // Hide player count selection
             selectPlayers.style.display = 'none';
             playersForm.style.display = 'block';
-
-            // Generate input fields for players
-            playerContainer.innerHTML = ''; // Clear previous inputs
+            playerContainer.innerHTML = '';
             for (let i = 1; i <= playerCount; i++) {
                 playerContainer.innerHTML += `
-                    <div class="player-name">
-                        <label for="player_${i}">Player ${i}:</label>
-                        <input type="text" id="player_${i}" name="players[]" placeholder="Enter Player ${i}'s Name" required>
-                    </div>
-                `;
+                    <div class="col-md-6 d-flex align-items-center">
+                        <img src="avatars/player${i}.jpg" 
+                             onerror="this.src='avatars/default.jpg'" 
+                             alt="Player ${i} Avatar" 
+                             class="avatar me-3">
+                        <input type="text" class="form-control" name="players[]" placeholder="Enter Player ${i} Name" required>
+                    </div>`;
             }
         } else {
             alert("Please select the number of players.");
         }
+    }
+
+    function goBack() {
+        document.getElementById('players-form').style.display = 'none';
+        document.getElementById('select-players').style.display = 'block';
+    }
+
+    function showInfo() {
+        document.getElementById('info-overlay').style.display = 'flex';
+    }
+
+    function closeInfo() {
+        document.getElementById('info-overlay').style.display = 'none';
     }
 
     function showPrivacyPolicy() {

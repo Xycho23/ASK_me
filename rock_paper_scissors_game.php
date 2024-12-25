@@ -9,16 +9,14 @@ if (!isset($_SESSION['players']) || empty($_SESSION['players'])) {
 
 $players = $_SESSION['players'];
 $totalPlayers = count($players);
+$currentPlayerIndex = $_SESSION['currentTurn'] ?? array_rand($players);
+$avatarPath = "avatars/player" . ($currentPlayerIndex + 1) . ".jpg"; // Adjust path to avatars
 
-// Select a random player for the current turn
-if (!isset($_SESSION['currentTurn'])) {
-    $_SESSION['currentTurn'] = array_rand($players); // Randomly select a starting player
-}
-
-$currentTurn = $_SESSION['currentTurn'];
+// Select the current player
+$currentTurn = $_SESSION['currentTurn'] ?? $currentPlayerIndex;
 $playerName = $players[$currentTurn];
 
-// Define the hand gestures
+// Define the hand gestures and questions
 $gestures = ['rock', 'paper', 'scissors'];
 $questions = [
     "What is your favorite childhood memory?",
@@ -75,12 +73,13 @@ function determineWinner($playerChoice, $computerChoice)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>Rock, Paper, Scissors Game</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -144,14 +143,85 @@ function determineWinner($playerChoice, $computerChoice)
         .back-button:hover {
             background-color: #c0392b;
         }
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        .instruction-button {
+            background-color: red;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50%;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .instruction-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            z-index: 1001;
+        }
+        .instruction-overlay p {
+            font-size: 18px;
+            margin: 10px;
+        }
+        .close-overlay {
+            background-color: red;
+            padding: 10px 20px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
     </style>
+    <script>
+        function toggleInstructions() {
+            const overlay = document.querySelector('.instruction-overlay');
+            overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+        }
+    </script>
 </head>
 <body>
 
+<!-- Instruction Button -->
+<button class="instruction-button" onclick="toggleInstructions()">?</button>
+
+<!-- Instruction Overlay -->
+<div class="instruction-overlay">
+    <div>
+        <p><strong>How to Play:</strong></p>
+        <p>1. Each player takes turns selecting Rock, Paper, or Scissors.</p>
+        <p>2. Rock beats Scissors, Scissors beats Paper, and Paper beats Rock.</p>
+        <p>3. If you lose, you answer a random question!</p>
+        <button class="close-overlay" onclick="toggleInstructions()">Close</button>
+    </div>
+</div>
+
 <div class="game-container">
+<img src="ask-me.png" alt="Game Logo" class="logo">
     <h1>Rock, Paper, Scissors Game</h1>
 
-    <p class="player-name"><?= $playerName ?>'s Turn</p>
+    <p class="player-name"><?= htmlspecialchars($playerName) ?>'s Turn</p>
+    <img src="<?= htmlspecialchars($avatarPath) ?>" alt="Avatar" class="avatar">
 
     <!-- Hand Gesture Selection -->
     <div class="gesture-container">
@@ -173,14 +243,14 @@ function determineWinner($playerChoice, $computerChoice)
         <div class="result">
             <p>You chose <strong><?= ucfirst($playerChoice) ?></strong></p>
             <p>The computer chose <strong><?= ucfirst($computerChoice) ?></strong></p>
-            <p><?= $result ?></p>
+            <p><?= htmlspecialchars($result) ?></p>
         </div>
     <?php endif; ?>
 
     <!-- Show random question if player loses -->
     <?php if ($randomQuestion): ?>
         <div class="question">
-            <p>Computer asks: <?= $randomQuestion ?></p>
+            <p>Computer asks: <?= htmlspecialchars($randomQuestion) ?></p>
         </div>
     <?php endif; ?>
 

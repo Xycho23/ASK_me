@@ -11,35 +11,36 @@ if (!isset($_SESSION['players']) || empty($_SESSION['players'])) {
 $players = $_SESSION['players'];
 $totalPlayers = count($players);
 $currentPlayerIndex = isset($_SESSION['currentPlayerIndex']) ? $_SESSION['currentPlayerIndex'] : 0;
-$currentPlayer = $players[$currentPlayerIndex];
+$avatarPath = "avatars/player" . ($currentPlayerIndex + 1) . ".jpg";  // Adjust path to avatars
+$currentPlayerName = "Player " . ($currentPlayerIndex + 1);
 
 // Hot Potato Game Logic
 $eliminatedPlayers = isset($_SESSION['eliminatedPlayers']) ? $_SESSION['eliminatedPlayers'] : [];
 $gameOver = false;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // If the timer goes off, eliminate the current player and move to the next one
-    if (isset($_POST['startGame'])) {
-        $potatoHolderIndex = array_rand($players);  // Randomly select the holder
-        $_SESSION['potatoHolderIndex'] = $potatoHolderIndex;
-        $potatoHolder = $players[$potatoHolderIndex];
-        
-        // Eliminate the current potato holder after the "timer" runs out
-        $eliminatedPlayers[] = $potatoHolder;
-        $_SESSION['eliminatedPlayers'] = $eliminatedPlayers;
-        
-        // Remove the player from the game
-        unset($players[$potatoHolderIndex]);
-        $_SESSION['players'] = array_values($players); // Reindex the array
-        
-        // Check if there is only one player left (game over)
-        if (count($players) <= 1) {
-            $gameOver = true;
-        } else {
-            // Update current player index after elimination
-            $currentPlayerIndex = ($currentPlayerIndex + 1) % count($players);
-            $_SESSION['currentPlayerIndex'] = $currentPlayerIndex;
-        }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['startGame'])) {
+    $potatoHolderIndex = array_rand($players);  // Randomly select the holder
+    $potatoHolder = $players[$potatoHolderIndex];
+
+    // Redirect eliminated player to Truth or Dare page
+    header("Location: truth_or_dare_game.php?player=" . urlencode($potatoHolder));
+    exit;
+
+    // Eliminate the player after handling the redirection
+    $eliminatedPlayers[] = $potatoHolder;
+    $_SESSION['eliminatedPlayers'] = $eliminatedPlayers;
+
+    // Remove the player from the game
+    unset($players[$potatoHolderIndex]);
+    $_SESSION['players'] = array_values($players); // Reindex the array
+
+    // Check if there is only one player left (game over)
+    if (count($players) <= 1) {
+        $gameOver = true;
+    } else {
+        // Update current player index after elimination
+        $currentPlayerIndex = ($currentPlayerIndex + 1) % count($players);
+        $_SESSION['currentPlayerIndex'] = $currentPlayerIndex;
     }
 }
 
@@ -47,17 +48,19 @@ $remainingPlayers = implode(', ', $players); // Show remaining players
 $eliminatedList = implode(', ', $eliminatedPlayers); // Show eliminated players
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ask-me.png">
     <title>Hot Potato Game</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
             margin: 0;
             padding: 0;
             display: flex;
@@ -163,14 +166,27 @@ $eliminatedList = implode(', ', $eliminatedPlayers); // Show eliminated players
             color: #e74c3c;
             margin-top: 20px;
         }
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="game-container">
+<img src="ask-me.png" alt="Game Logo" class="logo">
     <h1>Hot Potato Game</h1>
-    <p class="player-name">Current Player: <?= $currentPlayer ?></p>
-    
+    <div class="player-info">
+        <img src="<?= $avatarPath ?>" alt="Avatar" class="avatar">
+        <p class="player-name">It's <?= $currentPlayerName ?>'s turn!</p>
+    </div>
     <?php if ($gameOver): ?>
         <p class="game-status">Game Over! The winner is: <?= $players[0] ?></p>
         <p>Game over! Would you like to play again?</p>
@@ -236,7 +252,7 @@ window.onclick = function(event) {
 // Timer functionality
 var timerDisplay = document.getElementById('timer');
 var startButton = document.getElementById('startBtn');
-var countdown = 30;  // Initial countdown time (in seconds)
+var countdown = 40;  // Initial countdown time (in seconds)
 
 startButton.addEventListener('click', function(event) {
     event.preventDefault();
